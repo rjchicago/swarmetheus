@@ -27,16 +27,14 @@ $(for NODE in $(get_nodes); do echo "  - $NODE:$CONTAINER_PUBLISHED_PORT"; done)
 }
 
 function reload_prometheus() {
-  echo "CALLING RELOAD PROMETHEUS: $PROMETHEUS_RELOAD_URL"
+  echo "RELOAD PROMETHEUS: $PROMETHEUS_RELOAD_URL"
   if [[ ! -z $PROMETHEUS_RELOAD_URL ]]; then
     curl -X POST -i -s $PROMETHEUS_RELOAD_URL 2> /dev/null || true
   fi
 }
 
-function docker_run() {
-  docker pull "$CONTAINER_IMAGE"
-
-  echo STARTING HEALTH CONTAINER
+function run_health() {
+  echo "STARTING: heath"
   docker container rm $CONTAINER_NAME-health -f 2> /dev/null
   docker run \
     -d \
@@ -50,9 +48,12 @@ function docker_run() {
     -e CONTAINER_NAME="$CONTAINER_NAME" \
     --volume="/var/run/docker.sock:/var/run/docker.sock" \
     rjchicago/swarmetheus:latest &
+}
 
-  echo STARTING $CONTAINER_IMAGE
+function run_image() {
+  echo "STARTING: $CONTAINER_IMAGE"
   docker container rm $CONTAINER_NAME -f 2> /dev/null
+  docker pull "$CONTAINER_IMAGE"
   docker run \
     --rm \
     --init \
@@ -69,4 +70,5 @@ function docker_run() {
 
 write_prometheus_target_file
 reload_prometheus
-docker_run
+run_health
+run_image
