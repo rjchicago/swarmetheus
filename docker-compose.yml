@@ -1,0 +1,42 @@
+version: "3.8"
+
+networks:
+  prometheus-net:
+    external: true
+    name: ${PROMETHEUS_NETWORK:-prometheus-net}
+
+volumes:
+  swarmetheus_data:
+
+configs:
+  test_env:
+    file: env/test.env
+    name: test_env
+
+services:
+
+  swarmetheus:
+    image: rjchicago/swarmetheus:${VERSION:-latest}
+    build:
+      context: swarmetheus
+    networks:
+      - prometheus-net
+    environment:
+      ENV: "${ENV:-dev}"
+      # HOSTNAME: "{{.Node.Hostname}}" # <-- Standard Swarm Mode
+      HOSTNAME: "localhost" # local testing
+      CONTAINER_IMAGE: ${CONTAINER_IMAGE:-alpine}
+      CONTAINER_NAME: ${CONTAINER_NAME:-test}
+      CONTAINER_PUBLISHED_PORT: ${CONTAINER_PUBLISHED_PORT:-3000}
+      CONTAINER_INTERNAL_PORT: ${CONTAINER_INTERNAL_PORT:-3000}
+      CONTAINER_COMMAND: ${CONTAINER_COMMAND:-tail -f /dev/null}
+      PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
+      PROMETHEUS_TARGET_FILE: test.yml
+      PROMETHEUS_RELOAD_URL: ${PROMETHEUS_RELOAD_URL:-http://prometheus:9090/-/reload}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./swarmetheus/src:/swarmetheus/src
+      - swarmetheus_data:/swarmetheus/data
+    configs:
+      - source: test_env
+        target: /swarmetheus/env/test.env
