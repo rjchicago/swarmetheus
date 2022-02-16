@@ -34,7 +34,8 @@ function reload_prometheus() {
 }
 
 function run_health() {
-  echo "STARTING: heath"
+  IMAGE=$(docker inspect -f "{{.Config.Image}}" $(hostname))
+  echo "STARTING: $IMAGE"
   docker container rm $CONTAINER_NAME-health -f 2> /dev/null
   docker run \
     -d \
@@ -47,7 +48,7 @@ function run_health() {
     -e PARENT_PID="$(docker inspect -f "{{.State.Pid}}" $(hostname))" \
     -e CONTAINER_NAME="$CONTAINER_NAME" \
     --volume="/var/run/docker.sock:/var/run/docker.sock" \
-    rjchicago/swarmetheus:latest &
+    $IMAGE &
 }
 
 function run_image() {
