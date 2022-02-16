@@ -21,9 +21,8 @@ while true; do
         if kill -0 $CONTAINER_PID; then
             echo "KILLING $CONTAINER_PID"
             kill $CONTAINER_PID 2> /dev/null
-            echo "EXITING"
-            exit 0
         fi
+        echo "EXITING" && exit 0
     fi
     sleep 2
 done
