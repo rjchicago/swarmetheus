@@ -1,13 +1,16 @@
 FROM alpine
 
 WORKDIR /swarmetheus
-VOLUME /swarmetheus/env
+VOLUME /prometheus/files
+VOLUME /prometheus/rules
 
 # install docker
 RUN apk add --update curl docker openrc bash
 RUN rc-update add docker boot
 
-COPY ./src ./src
-RUN chmod +x src/*.sh
+COPY ./env ./env
+COPY ./rules ./rules
+COPY ./scripts ./scripts
+RUN chmod +x scripts/*.sh
 
-ENTRYPOINT "./src/entrypoint.sh"
+ENTRYPOINT "./scripts/entrypoint.sh"

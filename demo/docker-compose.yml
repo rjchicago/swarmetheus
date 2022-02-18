@@ -11,6 +11,10 @@ volumes:
   swarmetheus_files:
   swarmetheus_rules:
 
+configs:
+  prometheus.yml:
+    file: prometheus.yml
+
 services:
   swarmetheus:
     image: rjchicago/swarmetheus:${VERSION:-latest}
@@ -19,16 +23,13 @@ services:
     networks:
       - prometheus-net
     environment:
-      ENV: "${ENV:-dev}"
-      HOSTNAME: "{{.Node.Hostname}}" # <-- Standard Swarm Mode
+      ENV: "${ENV:-demo}"
+      HOSTNAME: "{{.Node.Hostname}}"
       PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - swarmetheus_files:/prometheus/files
+      - swarmetheus_files:/swarmetheus/files
       - swarmetheus_rules:/prometheus/rules
-      - ./swarmetheus/scripts:/swarmetheus/scripts
-      - ./swarmetheus/rules:/swarmetheus/rules
-      - ./swarmetheus/env:/swarmetheus/env
     deploy:
       mode: global
 
@@ -47,7 +48,8 @@ services:
       - prometheus_data:/prometheus_data
       - swarmetheus_files:/etc/prometheus/files/swarmetheus
       - swarmetheus_rules:/etc/prometheus/rules/swarmetheus
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
-

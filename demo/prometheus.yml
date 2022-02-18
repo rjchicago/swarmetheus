@@ -1,0 +1,15 @@
+
+global:
+  scrape_interval: 30s
+  scrape_timeout: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - rules/*.yml
+  - rules/swarmetheus/*.yml
+
+scrape_configs:
+  - job_name: 'swarmetheus'
+    file_sd_configs:
+    - files:
+      - files/swarmetheus/*.yml

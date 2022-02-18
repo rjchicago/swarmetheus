@@ -1,0 +1,11 @@
+groups:
+  - name: instance-rules
+    rules:
+
+      - alert: target_down
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down on {{ $labels.instance }} for more than 5 minutes."

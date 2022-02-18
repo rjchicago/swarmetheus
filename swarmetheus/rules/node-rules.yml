@@ -1,0 +1,21 @@
+groups:
+  - name: node-rules
+    rules:
+
+      - alert: node_high_cpu_usage
+        expr: 100 - 100 * avg(irate(node_cpu_seconds_total{mode="idle"}[1m])) by (instance) > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node {{ $labels.instance }} High CPU usage - {{ humanize $value}}%."
+
+      - alert: node_high_memory_usage
+        expr: 100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes)) > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: >
+            Node {{ $labels.instance }} High Memory usage - {{ humanize $value}}% -
+            Total Memory {{ humanize $labels.node_memory_MemTotal_bytes }}.
