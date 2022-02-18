@@ -1,5 +1,7 @@
 # swarmetheus
 
+Dead simple Prometheus for Docker Swarm.
+
 ``` sh
 # stack deploy
 docker stack deploy -c docker-compose.yml swarmetheus --prune

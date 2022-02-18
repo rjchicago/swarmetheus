@@ -11,7 +11,7 @@ groups:
           summary: 'High CPU Usage ({{ humanize $value }}% - Container {{ $labels.name}} on {{ $labels.instance }}'
 
       - alert: task_high_memory_usage
-        expr: sum by(name, instance) ((container_memory_rss{name!~"preview_prod_preview.+|drm-production_server.+"}) and (container_memory_rss{name=~".+"}))> 1e+09
+        expr: sum by(name, instance) (container_memory_rss{name=~".+"}) > 1e+09
         for: 5m
         labels:
           severity: critical
