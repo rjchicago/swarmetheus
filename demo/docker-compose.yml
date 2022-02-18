@@ -1,0 +1,48 @@
+version: '3.8'
+
+networks:
+  prometheus-net:
+    name: ${PROMETHEUS_NETWORK:-prometheus-net}
+    driver: overlay
+    attachable: true
+
+volumes:
+  prometheus_data:
+  swarmetheus_files:
+  swarmetheus_rules:
+
+configs:
+  prometheus.yml:
+    file: prometheus.yml
+
+services:
+  swarmetheus:
+    image: rjchicago/swarmetheus:${VERSION:-latest}
+    build:
+      context: swarmetheus
+    networks:
+      - prometheus-net
+    environment:
+      ENV: "${ENV:-demo}"
+      HOSTNAME: "{{.Node.Hostname}}"
+      PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - swarmetheus_files:/swarmetheus/files
+      - swarmetheus_rules:/prometheus/rules
+    deploy:
+      mode: global
+
+  prometheus:
+    image: prom/prometheus
+    networks:
+      - prometheus-net
+    volumes:
+      - prometheus_data:/prometheus_data
+      - swarmetheus_files:/etc/prometheus/files/swarmetheus
+      - swarmetheus_rules:/etc/prometheus/rules/swarmetheus
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
