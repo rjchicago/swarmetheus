@@ -8,12 +8,7 @@ networks:
 
 volumes:
   prometheus_data:
-  swarmetheus_files:
-  swarmetheus_rules:
-
-configs:
-  prometheus.yml:
-    file: prometheus.yml
+  swarmetheus_data:
 
 services:
   swarmetheus:
@@ -28,8 +23,7 @@ services:
       PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - swarmetheus_files:/swarmetheus/files
-      - swarmetheus_rules:/prometheus/rules
+      - swarmetheus_data:/swarmetheus_data
     deploy:
       mode: global
 
@@ -37,7 +31,7 @@ services:
     image: prom/prometheus
     user: root
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--config.file=/swarmetheus_data/config/prometheus.yml"
       - "--storage.tsdb.path=/prometheus_data"
       - "--storage.tsdb.retention.time=30d"
       - "--web.enable-lifecycle"
@@ -46,10 +40,6 @@ services:
       - prometheus-net
     volumes:
       - prometheus_data:/prometheus_data
-      - swarmetheus_files:/etc/prometheus/files/swarmetheus
-      - swarmetheus_rules:/etc/prometheus/rules/swarmetheus
-    configs:
-      - source: prometheus.yml
-        target: /etc/prometheus/prometheus.yml
+      - swarmetheus_data:/swarmetheus_data
     ports:
       - "9090:9090"

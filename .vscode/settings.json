@@ -3,6 +3,7 @@
         "cadvisor",
         "dockerswarm",
         "kmsg",
+        "mountpoint",
         "rootfs",
         "swarmetheus"
     ]

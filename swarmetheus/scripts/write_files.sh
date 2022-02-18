@@ -3,7 +3,12 @@
 
 : ${PROMETHEUS_RELOAD_URL:=http://prometheus:9090/-/reload}
 
-BASE_DIR="/prometheus/files"
+FILES_DIR="/swarmetheus_data/files"
+RULES_DIR="/swarmetheus_data/rules"
+CONFIG_DIR="/swarmetheus_data/config"
+mkdir -p $FILES_DIR
+mkdir -p $RULES_DIR
+mkdir -p $CONFIG_DIR
 
 function get_ip() {
   local NODE=$1
@@ -19,7 +24,7 @@ function node_swap() {
 }
 
 function write_base() {
-  local FILE="$BASE_DIR/swarmetheus.yml"
+  local FILE="$FILES_DIR/swarmetheus.yml"
   echo '---' > $FILE
   printf 'version: "3.8"\nx-hosts: &hosts\n' >> $FILE
   for NODE in $(docker node ls --format "{{.Hostname}}"); do
@@ -34,7 +39,7 @@ function write_base() {
 function write_yml() {
   local TYPE=$1
   local PORT=$(source ./env/$TYPE.env && echo $PUBLISHED_PORT)
-  local FILE="$BASE_DIR/$TYPE.yml"
+  local FILE="$FILES_DIR/$TYPE.yml"
   echo '---' > $FILE
   printf -- "- targets:\n" >> $FILE
   for NODE in $(docker node ls --format "{{.Hostname}}"); do
@@ -49,8 +54,13 @@ function write_yml() {
 }
 
 function write_rules() {
-  rm -rf /prometheus/rules/*
-  cp -r /swarmetheus/rules/* /prometheus/rules
+  rm -rf $RULES_DIR/*
+  cp -r /swarmetheus/rules/* $RULES_DIR
+}
+
+function write_config() {
+  rm -rf $CONFIG_DIR/*
+  cp -r /swarmetheus/config/* $CONFIG_DIR
 }
 
 function reload_prometheus() {
@@ -63,5 +73,6 @@ function reload_prometheus() {
 write_base
 write_yml cadvisor
 write_yml node-exporter
+write_config
 write_rules
 reload_prometheus
