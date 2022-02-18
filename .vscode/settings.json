@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "cadvisor",
+        "dockerswarm",
         "kmsg",
         "rootfs",
         "swarmetheus"

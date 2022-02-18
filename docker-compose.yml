@@ -2,12 +2,14 @@ version: '3.8'
 
 networks:
   prometheus-net:
-    external: true
     name: ${PROMETHEUS_NETWORK:-prometheus-net}
+    driver: overlay
+    attachable: true
 
 volumes:
   prometheus_data:
   swarmetheus_files:
+  swarmetheus_rules:
 
 services:
   swarmetheus:
@@ -22,19 +24,29 @@ services:
       PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - swarmetheus_files:/swarmetheus/files
+      - swarmetheus_files:/prometheus/files
+      - swarmetheus_rules:/prometheus/rules
       - ./swarmetheus/scripts:/swarmetheus/scripts
+      - ./swarmetheus/rules:/swarmetheus/rules
       - ./swarmetheus/env:/swarmetheus/env
     deploy:
       mode: global
 
   prometheus:
     image: prom/prometheus
+    user: root
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus_data"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+      - "--web.external-url=http://localhost:9090"
     networks:
       - prometheus-net
     volumes:
       - prometheus_data:/prometheus_data
       - swarmetheus_files:/etc/prometheus/files/swarmetheus
+      - swarmetheus_rules:/etc/prometheus/rules/swarmetheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"

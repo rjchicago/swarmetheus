@@ -1,0 +1,19 @@
+groups:
+  - name: container-rules
+    rules:
+
+      - alert: task_high_cpu_usage
+        expr: sum(rate(container_cpu_usage_seconds_total{name=~".+"}[1m])) BY (name, instance) * 100 > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High CPU Usage ({{ humanize $value }}% - Container {{ $labels.name}} on {{ $labels.instance }}'
+
+      - alert: task_high_memory_usage
+        expr: sum by(name, instance) ((container_memory_rss{name!~"preview_prod_preview.+|drm-production_server.+"}) and (container_memory_rss{name=~".+"}))> 1e+09
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'High Memory Usage {{ humanize $value }} - Container {{ $labels.name }} on {{ $labels.instance }}'

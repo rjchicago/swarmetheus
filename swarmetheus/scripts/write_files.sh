@@ -3,7 +3,7 @@
 
 : ${PROMETHEUS_RELOAD_URL:=http://prometheus:9090/-/reload}
 
-BASE_DIR="/swarmetheus/files"
+BASE_DIR="/prometheus/files"
 
 function get_ip() {
   local NODE=$1
@@ -48,6 +48,11 @@ function write_yml() {
   echo "$FILE:" && cat $FILE && echo
 }
 
+function write_rules() {
+  rm -rf /prometheus/rules/*
+  cp -r /swarmetheus/rules/* /prometheus/rules
+}
+
 function reload_prometheus() {
   echo "RELOAD PROMETHEUS: $PROMETHEUS_RELOAD_URL"
   if [[ ! -z $PROMETHEUS_RELOAD_URL ]]; then
@@ -58,4 +63,5 @@ function reload_prometheus() {
 write_base
 write_yml cadvisor
 write_yml node-exporter
+write_rules
 reload_prometheus

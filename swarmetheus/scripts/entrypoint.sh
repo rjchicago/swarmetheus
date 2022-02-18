@@ -10,6 +10,7 @@ export PROMETHEUS_RELOAD_URL=$PROMETHEUS_RELOAD_URL
 export PROMETHEUS_NETWORK=$PROMETHEUS_NETWORK
 export HOSTNAME=$HOSTNAME
 
+# we only want to write files from one node, so let's check if this is the leader...
 STATUS=$(docker node ls -f "role=manager" -f "name=$HOSTNAME" --format "{{.ManagerStatus}}")
 if [ "$STATUS" = "Leader" ]; then
   sh ./scripts/write_files.sh
@@ -19,4 +20,5 @@ sh ./scripts/run_health.sh
 sh ./scripts/run_cadvisor.sh
 sh ./scripts/run_node_exporter.sh
 
-tail -f /dev/null
+# keep process open - health is monitoring this PID
+docker container logs -f swarmetheus-health 
