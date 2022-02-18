@@ -14,39 +14,19 @@ services:
     image: rjchicago/swarmetheus:${VERSION:-latest}
     build:
       context: swarmetheus
-    entrypoint: /swarmetheus/scripts/run.sh
     networks:
       - prometheus-net
     environment:
       ENV: "${ENV:-dev}"
-      # HOSTNAME: "{{.Node.Hostname}}" # <-- Standard Swarm Mode
+      HOSTNAME: "{{.Node.Hostname}}" # <-- Standard Swarm Mode
       PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - swarmetheus_files:/swarmetheus/files
       - ./swarmetheus/scripts:/swarmetheus/scripts
       - ./swarmetheus/env:/swarmetheus/env
-      - swarmetheus_files:/swarmetheus/files
     deploy:
       mode: global
-
-  swarmetheus-files:
-    image: rjchicago/swarmetheus:${VERSION:-latest}
-    entrypoint: /swarmetheus/scripts/write_files.sh
-    environment:
-      ENV: "${ENV:-dev}"
-      # HOSTNAME: "{{.Node.Hostname}}" # <-- Swarm Mode
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./swarmetheus/scripts:/swarmetheus/scripts
-      - ./swarmetheus/env:/swarmetheus/env
-      - swarmetheus_files:/swarmetheus/files
-    deploy:
-      placement:
-        constraints:
-          - node.role==manager
-      replicas: 1
-      restart_policy:
-        condition: none
 
   prometheus:
     image: prom/prometheus
