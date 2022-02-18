@@ -1,7 +1,9 @@
 #!/bin/bash -eu
 # set -x
 
-: ${PROMETHEUS_RELOAD_URL:=http://prometheus:9090/-/reload}
+: ${STACK_NAME:=swarmetheus}
+: ${PROMETHEUS_SERVICE:=prometheus}
+: ${PROMETHEUS_RELOAD_URL:=http://$PROMETHEUS_SERVICE:9090/-/reload}
 
 FILES_DIR="/swarmetheus_data/files"
 RULES_DIR="/swarmetheus_data/rules"
@@ -14,7 +16,7 @@ function get_ip() {
   local NODE=$1
   local IP=$(docker node inspect $NODE --format '{{.ManagerStatus.Addr}}' 2> /dev/null)
   [ -z $IP ] && IP=$(docker node inspect $NODE --format '{{.Status.Addr}}')
-  echo $IP
+  echo $IP | cut -d: -f1
 }
 
 function node_swap() {
@@ -23,17 +25,14 @@ function node_swap() {
   [ "$NODE" = "docker-desktop" ] && echo "host.docker.internal" || echo $NODE
 }
 
-function write_base() {
-  local FILE="$FILES_DIR/swarmetheus.yml"
-  echo '---' > $FILE
-  printf 'version: "3.8"\nx-hosts: &hosts\n' >> $FILE
+function add_hosts() {
+  local ADD_HOSTS=""
   for NODE in $(docker node ls --format "{{.Hostname}}"); do
     IP=$(get_ip $NODE)
-    printf "%2s$NODE: $IP\n" >> $FILE
-    # local NODE_SWAP=$(node_swap $NODE)
-    # printf "%2s$NODE_SWAP: $IP\n" >> $FILE
+    ADD_HOSTS="$ADD_HOSTS --host-add $NODE:$IP"
+    echo "ADD HOST: $NODE:$IP"
   done
-  echo "$FILE:" && cat $FILE && echo
+  docker service update $ADD_HOSTS ${STACK_NAME}_${PROMETHEUS_SERVICE}
 }
 
 function write_yml() {
@@ -53,6 +52,11 @@ function write_yml() {
   echo "$FILE:" && cat $FILE && echo
 }
 
+function write_files() {
+  write_yml cadvisor
+  write_yml node-exporter
+}
+
 function write_rules() {
   rm -rf $RULES_DIR/*
   cp -r /swarmetheus/rules/* $RULES_DIR
@@ -65,14 +69,14 @@ function write_config() {
 
 function reload_prometheus() {
   echo "RELOAD PROMETHEUS: $PROMETHEUS_RELOAD_URL"
+  # while ! sleep 1 | telnet prometheus 9090 2> /dev/null; do echo "waiting on prometheus"; done
   if [[ ! -z $PROMETHEUS_RELOAD_URL ]]; then
     curl -X POST -i -s $PROMETHEUS_RELOAD_URL 2> /dev/null || true
   fi
 }
 
-write_base
-write_yml cadvisor
-write_yml node-exporter
 write_config
+write_files
 write_rules
+add_hosts
 reload_prometheus
