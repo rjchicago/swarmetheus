@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 networks:
   prometheus-net:
@@ -6,37 +6,72 @@ networks:
     name: ${PROMETHEUS_NETWORK:-prometheus-net}
 
 volumes:
-  swarmetheus_data:
+  prometheus_data:
+  swarmetheus_files:
 
-configs:
-  test_env:
-    file: env/test.env
-    name: test_env
+# configs:
+#   cadvisor:
+#     file: env/cadvisor.env
+#     name: cadvisor
+#   node-exporter:
+#     file: env/node-exporter.env
+#     name: node-exporter
 
 services:
-
   swarmetheus:
     image: rjchicago/swarmetheus:${VERSION:-latest}
     build:
       context: swarmetheus
+    entrypoint: /swarmetheus/scripts/run.sh
     networks:
       - prometheus-net
     environment:
       ENV: "${ENV:-dev}"
       # HOSTNAME: "{{.Node.Hostname}}" # <-- Standard Swarm Mode
-      HOSTNAME: "localhost" # local testing
-      CONTAINER_IMAGE: ${CONTAINER_IMAGE:-alpine}
-      CONTAINER_NAME: ${CONTAINER_NAME:-test}
-      CONTAINER_PUBLISHED_PORT: ${CONTAINER_PUBLISHED_PORT:-3000}
-      CONTAINER_INTERNAL_PORT: ${CONTAINER_INTERNAL_PORT:-3000}
-      CONTAINER_COMMAND: ${CONTAINER_COMMAND:-tail -f /dev/null}
       PROMETHEUS_NETWORK: ${PROMETHEUS_NETWORK:-prometheus-net}
-      PROMETHEUS_TARGET_FILE: test.yml
-      PROMETHEUS_RELOAD_URL: ${PROMETHEUS_RELOAD_URL:-http://prometheus:9090/-/reload}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./swarmetheus/src:/swarmetheus/src
-      - swarmetheus_data:/swarmetheus/data
-    configs:
-      - source: test_env
-        target: /swarmetheus/env/test.env
+      - ./swarmetheus/scripts:/swarmetheus/scripts
+      - ./swarmetheus/env:/swarmetheus/env
+      - swarmetheus_files:/swarmetheus/files
+    # env_file:
+    #   - swarmetheus.env
+    # configs:
+    #   - source: cadvisor
+    #     target: /swarmetheus/env/cadvisor.env
+    #   - source: node-exporter
+    #     target: /swarmetheus/env/node-exporter.env
+    deploy:
+      mode: global
+
+  swarmetheus-files:
+    image: rjchicago/swarmetheus:${VERSION:-latest}
+    entrypoint: /swarmetheus/scripts/write_files.sh
+    networks:
+      - prometheus-net
+    environment:
+      ENV: "${ENV:-dev}"
+      # HOSTNAME: "{{.Node.Hostname}}" # <-- Swarm Mode
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./swarmetheus/scripts:/swarmetheus/scripts
+      - swarmetheus_files:/swarmetheus/files
+    deploy:
+      placement:
+        constraints:
+          - node.role==manager
+      replicas: 1
+      restart_policy:
+        condition: none
+
+  prometheus:
+    image: prom/prometheus
+    networks:
+      - prometheus-net
+    volumes:
+      - prometheus_data:/prometheus_data
+      - swarmetheus_files:/etc/prometheus/files/swarmetheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
