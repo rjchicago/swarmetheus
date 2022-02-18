@@ -35,6 +35,13 @@ services:
 
   prometheus:
     image: prom/prometheus
+    user: root
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus_data"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+      - "--web.external-url=http://localhost:9090"
     networks:
       - prometheus-net
     volumes:
