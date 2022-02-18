@@ -3,6 +3,12 @@
 ``` sh
 # create network for compose
 docker network create --driver overlay --attachable  prometheus-net
+
+# stack deploy
+docker stack deploy -c docker-compose.yml swarmetheus --prune
+
+# remove
+docker stack rm swarmetheus
 ```
 
 ## Node CPU

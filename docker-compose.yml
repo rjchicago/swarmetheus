@@ -9,14 +9,6 @@ volumes:
   prometheus_data:
   swarmetheus_files:
 
-# configs:
-#   cadvisor:
-#     file: env/cadvisor.env
-#     name: cadvisor
-#   node-exporter:
-#     file: env/node-exporter.env
-#     name: node-exporter
-
 services:
   swarmetheus:
     image: rjchicago/swarmetheus:${VERSION:-latest}
@@ -34,27 +26,19 @@ services:
       - ./swarmetheus/scripts:/swarmetheus/scripts
       - ./swarmetheus/env:/swarmetheus/env
       - swarmetheus_files:/swarmetheus/files
-    # env_file:
-    #   - swarmetheus.env
-    # configs:
-    #   - source: cadvisor
-    #     target: /swarmetheus/env/cadvisor.env
-    #   - source: node-exporter
-    #     target: /swarmetheus/env/node-exporter.env
     deploy:
       mode: global
 
   swarmetheus-files:
     image: rjchicago/swarmetheus:${VERSION:-latest}
     entrypoint: /swarmetheus/scripts/write_files.sh
-    networks:
-      - prometheus-net
     environment:
       ENV: "${ENV:-dev}"
       # HOSTNAME: "{{.Node.Hostname}}" # <-- Swarm Mode
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./swarmetheus/scripts:/swarmetheus/scripts
+      - ./swarmetheus/env:/swarmetheus/env
       - swarmetheus_files:/swarmetheus/files
     deploy:
       placement:

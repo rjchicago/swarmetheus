@@ -5,38 +5,47 @@ global:
   evaluation_interval: 30s
 
 scrape_configs:
+- job_name: 'swarmetheus'
+  file_sd_configs:
+  - files:
+    - files/swarmetheus/*.yml
+  # relabel_configs:
+  #   - source_labels: [instance]
+  #     target_label: __tmp_instance
+  #     regex: '(.+)'
+  #     replacement: '${1};'
+  #   - source_labels: [__tmp_instance, __address__]
+  #     separator: ''
+  #     target_label: instance
+  #     regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+  #     replacement: '${1}'
 
-# - job_name: 'swarmetheus'
+# - job_name: 'node-exporter'
 #   file_sd_configs:
 #   - files:
-#     - files/swarmetheus/*.yml
+#     - files/swarmetheus/node-exporter.yml
+#   relabel_configs:
+#     - source_labels: [instance]
+#       target_label: __tmp_instance
+#       regex: '(.+)'
+#       replacement: '${1};'
+#     - source_labels: [__tmp_instance, __address__]
+#       separator: ''
+#       target_label: instance
+#       regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+#       replacement: '${1}'
 
-- job_name: 'node-exporter'
-  file_sd_configs:
-  - files:
-    - files/swarmetheus/node-exporter.yml
-  relabel_configs:
-    - source_labels: [instance]
-      target_label: __tmp_instance
-      regex: '(.+)'
-      replacement: '${1};'
-    - source_labels: [__tmp_instance, __address__]
-      separator: ''
-      target_label: instance
-      regex: '([^:;]+)((:[0-9]+)?|;(.*))'
-      replacement: '${1}'
-
-- job_name: 'cadvisor'
-  file_sd_configs:
-  - files:
-    - files/swarmetheus/cadvisor.yml
-  relabel_configs:
-    - source_labels: [instance]
-      target_label: __tmp_instance
-      regex: '(.+)'
-      replacement: '${1};'
-    - source_labels: [__tmp_instance, __address__]
-      separator: ''
-      target_label: instance
-      regex: '([^:;]+)((:[0-9]+)?|;(.*))'
-      replacement: '${1}'
+# - job_name: 'cadvisor'
+#   file_sd_configs:
+#   - files:
+#     - files/swarmetheus/cadvisor.yml
+#   relabel_configs:
+#     - source_labels: [instance]
+#       target_label: __tmp_instance
+#       regex: '(.+)'
+#       replacement: '${1};'
+#     - source_labels: [__tmp_instance, __address__]
+#       separator: ''
+#       target_label: instance
+#       regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+#       replacement: '${1}'

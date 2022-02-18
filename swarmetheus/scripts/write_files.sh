@@ -3,26 +3,48 @@
 
 : ${PROMETHEUS_RELOAD_URL:=http://prometheus:9090/-/reload}
 
+BASE_DIR="/swarmetheus/files"
+
+function get_ip() {
+  local NODE=$1
+  local IP=$(docker node inspect $NODE --format '{{.ManagerStatus.Addr}}' 2> /dev/null)
+  [ -z $IP ] && IP=$(docker node inspect $NODE --format '{{.Status.Addr}}')
+  echo $IP
+}
+
+function node_swap() {
+  local NODE=$1
+  # https://docs.docker.com/desktop/mac/networking/#use-cases-and-workarounds
+  [ "$NODE" = "docker-desktop" ] && echo "host.docker.internal" || echo $NODE
+}
+
+function write_base() {
+  local FILE="$BASE_DIR/swarmetheus.yml"
+  echo '---' > $FILE
+  printf 'version: "3.8"\nx-hosts: &hosts\n' >> $FILE
+  for NODE in $(docker node ls --format "{{.Hostname}}"); do
+    IP=$(get_ip $NODE)
+    printf "%2s$NODE: $IP\n" >> $FILE
+    # local NODE_SWAP=$(node_swap $NODE)
+    # printf "%2s$NODE_SWAP: $IP\n" >> $FILE
+  done
+  echo "$FILE:" && cat $FILE && echo
+}
+
 function write_yml() {
-  TYPE=$1
-  PORT=${2:-}
-  BASE_DIR="/swarmetheus/files"
-  FILE="$BASE_DIR/$TYPE.yml"
+  local TYPE=$1
+  local PORT=$(source ./env/$TYPE.env && echo $PUBLISHED_PORT)
+  local FILE="$BASE_DIR/$TYPE.yml"
   echo '---' > $FILE
   printf -- "- targets:\n" >> $FILE
-  [ "$TYPE" = "swarmetheus" ] && printf 'version: "3.8"\nx-hosts: &hosts\n' >> $FILE
   for NODE in $(docker node ls --format "{{.Hostname}}"); do
-    # https://docs.docker.com/desktop/mac/networking/#use-cases-and-workarounds
-    IP=$(docker node inspect $NODE --format '{{.ManagerStatus.Addr}}' 2> /dev/null)
-    [ -z $IP ] && IP=$(docker node inspect $NODE --format '{{.Status.Addr}}')
-    if [ "$NODE" = "docker-desktop" ]; then NODE="host.docker.internal"; fi
-    if [ "$TYPE" = "swarmetheus" ]; then
-      printf "%2s$NODE: $IP\n" >> $FILE
-    else
-      printf "%2s- $NODE:$PORT\n" >> $FILE
-    fi
+    local NODE_SWAP=$(node_swap $NODE)
+    printf "%2s- $NODE_SWAP:$PORT\n" >> $FILE
   done
   # append any labels...
+  printf "%2slabels:\n" >> $FILE
+  printf "%4senv: ${ENV:-local}\n" >> $FILE
+  printf "%4ssource: $TYPE\n" >> $FILE
   echo "$FILE:" && cat $FILE && echo
 }
 
@@ -33,7 +55,7 @@ function reload_prometheus() {
   fi
 }
 
-write_yml swarmetheus
-write_yml cadvisor 9091
-write_yml node-exporter 9092
+write_base
+write_yml cadvisor
+write_yml node-exporter
 reload_prometheus
