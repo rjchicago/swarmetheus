@@ -1,0 +1,84 @@
+# Traefik Config 2.x
+
+# Default Routers
+http:
+  routers:
+    to-metrics:
+      rule: "HostRegexp(`{domain:traefik.+}`) && PathPrefix(`/metrics`)"
+      service: prometheus@internal
+      priority: 200
+
+# Entrypoints configuration
+entryPoints:
+  metrics:
+    address: ':8084'
+  http:
+    address: ':80'
+    forwardedHeaders:
+      insecure: true
+    http:
+      middlewares:
+        - compress@file
+    #   redirections:
+    #     entryPoint:
+    #       to: https
+    #       scheme: https
+  https:
+    address: ':443'
+    forwardedHeaders:
+      insecure: true
+    http:
+      middlewares:
+        - compress@file
+      tls:
+        domains:
+          - main: "localhost"
+            sans:
+              - "*.localhost"
+
+# API and dashboard configuration
+api:
+  dashboard: true
+  debug: true
+  insecure: true
+
+# Ping configuration
+ping:
+  entryPoint: http
+
+# Enable Prometheus metrics
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    entryPoint: metrics
+    buckets:
+      - 0.1
+      - 0.3
+      - 1.2
+      - 5.0
+
+# Traefik logs configuration
+log:
+  level: ERROR
+
+# Traefik Access logs configuration
+accessLog:
+  filePath: /var/log/traefik2-access.log.json
+  bufferingSize: 100
+  format: json
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+      names:
+        Authorization: drop
+
+# Docker configuration backend
+providers:
+  file:
+    directory: /etc/traefik
+  docker:
+    exposedByDefault: false
+    swarmMode: true # must be set to true for swarm mode, false for compose
+    endpoint: 'unix:///var/run/docker.sock'

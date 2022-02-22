@@ -1,0 +1,90 @@
+version: '3.8'
+
+networks:
+  traefik-net:
+    name: ${TRAEFIK_NETWORK:-demo-traefik-net}
+    driver: overlay
+    attachable: true
+  prometheus-net:
+    name: ${PROMETHEUS_NETWORK:-prometheus-net}
+    driver: overlay
+    attachable: true
+
+volumes:
+  prometheus_data:
+  swarmetheus_data:
+  traefik-logs:
+    external: true
+    name: traefik-logs
+
+services:
+  swarmetheus:
+    image: rjchicago/swarmetheus:${VERSION:-latest}
+    build:
+      context: swarmetheus
+    networks:
+      - prometheus-net
+    environment:
+      ENV: "${ENV:-demo}"
+      HOSTNAME: "{{.Node.Hostname}}"
+      PROMETHEUS_NETWORK: "${PROMETHEUS_NETWORK:-prometheus-net}"
+      CUSTOM_ENVS: "traefik" # comma or semicolon deliminated string
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - swarmetheus_data:/swarmetheus_data
+      - ./env/traefik.env:/swarmetheus/env/traefik.env # volume map custom env
+    deploy:
+      mode: global
+
+  prometheus:
+    image: prom/prometheus
+    user: root
+    command:
+      - "--config.file=/swarmetheus_data/config/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus_data"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+      - "--web.external-url=http://localhost:9090"
+    networks:
+      - prometheus-net
+      - traefik-net
+    volumes:
+      - prometheus_data:/prometheus_data
+      - swarmetheus_data:/swarmetheus_data
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_NETWORK:-demo-traefik-net}
+        - traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)
+        - traefik.http.routers.prometheus.service=prometheus
+        - traefik.http.services.prometheus.loadbalancer.server.port=9090
+
+  traefik:
+    image: traefik:2.5.7
+    ports:
+      - 80:80
+      - 8080:8080
+      - 8084:8084
+      - 443:443
+    networks:
+      - traefik-net
+    volumes:
+      - traefik-logs:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./certs/tls.crt:/certs/tls.crt
+      - ./certs/tls.key:/certs/tls.key
+      - ./config/traefik:/etc/traefik
+    deploy:
+      mode: global
+      update_config:
+        delay: 20s
+        order: start-first
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_NETWORK:-demo-traefik-net}
+        - traefik.http.routers.traefik.service=api@internal
+        - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
+        - traefik.http.services.traefik.loadbalancer.server.port=8080

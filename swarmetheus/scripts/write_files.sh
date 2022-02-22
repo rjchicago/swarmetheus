@@ -57,6 +57,15 @@ function write_files() {
   write_yml node-exporter
 }
 
+function write_custom_env_files() {
+  if [ ! -z $CUSTOM_ENVS ]; then
+    IFS=';, ' read -r CUSTOM_ENVS_ARR <<< "$CUSTOM_ENVS"
+    for CUSTOM_ENV in "${CUSTOM_ENVS_ARR[@]}"; do
+      write_yml $CUSTOM_ENV
+    done
+  fi
+}
+
 function write_rules() {
   rm -rf $RULES_DIR/*
   cp -r /swarmetheus/rules/* $RULES_DIR
@@ -77,6 +86,7 @@ function reload_prometheus() {
 
 write_config
 write_files
+write_custom_env_files
 write_rules
 add_hosts
 reload_prometheus

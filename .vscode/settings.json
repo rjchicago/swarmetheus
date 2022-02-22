@@ -1,9 +1,15 @@
 {
     "cSpell.words": [
+        "alertmanager",
+        "alertmanagers",
+        "alertname",
         "cadvisor",
         "dockerswarm",
+        "entrypoints",
         "kmsg",
+        "middlewares",
         "mountpoint",
+        "redirections",
         "rootfs",
         "swarmetheus"
     ]
