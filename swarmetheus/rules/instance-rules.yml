@@ -8,4 +8,4 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service {{ $labels.source }} is down on {{ $labels.instance }} for more than 5 minutes."
+          summary: "{{ $labels.job }} is down on {{ $labels.instance }} for more than 5 minutes."
