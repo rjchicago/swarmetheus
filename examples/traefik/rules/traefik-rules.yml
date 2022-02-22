@@ -1,0 +1,17 @@
+groups:
+  - name: traefik-service-rules
+    rules:
+      - alert: 5xx_errors_5pct
+        expr: |
+          (
+            sum by(service, method, code)  (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+            /
+            sum by(service, method, code)  (rate(traefik_service_requests_total[5m]))
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: >
+            Many {{ $labels.code }} errors (http/{{ $labels.method }}) for services {{ $labels.service }}
+            {{ humanize $value }}% failed for the last 5 minutes.

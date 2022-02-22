@@ -33,6 +33,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - swarmetheus_data:/swarmetheus_data
       - ./env/traefik.env:/swarmetheus/env/traefik.env # volume map custom env
+      - ./rules/traefik-rules.yml:/swarmetheus/rules/traefik-rules.yml # volume map custom rules
     deploy:
       mode: global
 
