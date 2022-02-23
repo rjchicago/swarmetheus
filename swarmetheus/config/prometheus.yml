@@ -6,6 +6,12 @@ global:
 rule_files:
   - /swarmetheus_data/rules/*.yml
 
+alerting:
+  alertmanagers:
+    - file_sd_configs:
+      - files:
+        - /swarmetheus_data/alerting/*.yml
+
 scrape_configs:
   - job_name: 'swarmetheus'
     file_sd_configs:

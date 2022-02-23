@@ -11,11 +11,12 @@ networks:
     attachable: true
 
 volumes:
+  alertmanager_data:
   prometheus_data:
   swarmetheus_data:
-  traefik-logs:
+  traefik_data:
     external: true
-    name: traefik-logs
+    name: traefik_data
 
 services:
   swarmetheus:
@@ -32,8 +33,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - swarmetheus_data:/swarmetheus_data
-      - ./env/traefik.env:/swarmetheus/env/traefik.env # volume map custom env
-      - ./rules/traefik-rules.yml:/swarmetheus/rules/traefik-rules.yml # volume map custom rules
+      - ./swarmetheus/env/traefik.env:/swarmetheus/env/traefik.env # volume map custom env
+      - ./swarmetheus/rules/traefik-rules.yml:/swarmetheus/rules/traefik-rules.yml # volume map custom rules
+      - ./swarmetheus/alerting/alertmanager.yml:/swarmetheus_data/alerting/alertmanager.yml # volume map alerting
     deploy:
       mode: global
 
@@ -53,11 +55,14 @@ services:
       - prometheus_data:/prometheus_data
       - swarmetheus_data:/swarmetheus_data
     deploy:
+      update_config:
+        delay: 10s
+        order: start-first
       labels:
         - traefik.enable=true
         - traefik.docker.network=${TRAEFIK_NETWORK:-demo-traefik-net}
-        - traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)
         - traefik.http.routers.prometheus.service=prometheus
+        - traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)
         - traefik.http.services.prometheus.loadbalancer.server.port=9090
 
   traefik:
@@ -70,11 +75,11 @@ services:
     networks:
       - traefik-net
     volumes:
-      - traefik-logs:/var/log
+      - traefik_data:/var/log
       - /var/run/docker.sock:/var/run/docker.sock
       - ./certs/tls.crt:/certs/tls.crt
       - ./certs/tls.key:/certs/tls.key
-      - ./config/traefik:/etc/traefik
+      - ./traefik:/etc/traefik
     deploy:
       mode: global
       update_config:
@@ -89,3 +94,22 @@ services:
         - traefik.http.routers.traefik.service=api@internal
         - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
         - traefik.http.services.traefik.loadbalancer.server.port=8080
+
+  alertmanager:
+    image: prom/alertmanager:v0.23.0
+    networks:
+      - prometheus-net
+      - traefik-net
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--web.external-url=${ALERTMANAGER_EXTERNAL_URL:-http://alertmanager.localhost}"
+    volumes:
+      - alertmanager_data:/alertmanager
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_NETWORK:-demo-traefik-net}
+        - traefik.http.routers.alertmanager.service=alertmanager
+        - traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)
+        - traefik.http.services.alertmanager.loadbalancer.server.port=9093
