@@ -5,6 +5,11 @@ CONTAINER_NAME="swarmetheus-$NAME"
 FILE="env/$NAME.env"
 [ ! -f $FILE ] && echo "$FILE not found" && exit 1
 source $FILE
+
+: "${HOSTNAME:?HOSTNAME is required}"
+: "${PUBLISHED_PORT:?PUBLISHED_PORT is required}"
+: "${IMAGE:?IMAGE is required}"
+
 echo "STARTING: $CONTAINER_NAME"
 docker container rm $CONTAINER_NAME -f 2> /dev/null
 docker pull "$IMAGE"

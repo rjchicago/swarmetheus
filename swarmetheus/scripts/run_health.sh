@@ -13,6 +13,6 @@ docker run \
   --name="$CONTAINER_NAME" \
   --entrypoint="/swarmetheus/scripts/health.sh" \
   -e PARENT_PID="$(docker inspect -f "{{.State.Pid}}" $(hostname))" \
-  -e STARTUP_SECONDS=${STARTUP_SECONDS:-30} \
+  -e STARTUP_SECONDS=${STARTUP_SECONDS:-20} \
   --volume="/var/run/docker.sock:/var/run/docker.sock" \
   $IMAGE
