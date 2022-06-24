@@ -1,4 +1,15 @@
-# traefik example
+# bonus-example
+
+Are you the type of person who never settles for just the basics?
+
+Well, you're in the right place! `Swarmetheus` **bonus-example** has it all!
+
+* cAdvisor
+* Node Exporter
+* Traefik
+* Alertmanager
+* Grafana
+* \+ https & preconfigured alerts!
 
 ## deploy
 

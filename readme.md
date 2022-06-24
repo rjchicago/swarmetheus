@@ -66,6 +66,10 @@ Many basic alerts are preconfigured:
 
 ![swarmetheus-alerts](./assets/swarmetheus-alerts.png)
 
+## bonus-example
+
+To deploy the bonus example, see the [bonus-example readme](./examples/bonus-example/readme.md).
+
 ## cleanup
 
 Since `swarmetheus` runs additional containers, it is cleaner to remove those first, then the stack, and finally the volumes:

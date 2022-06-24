@@ -1,6 +1,6 @@
 # swarmetheus demo
 
-As a reminder, use the following to clean up after all swarmetheus data and services:
+As a reminder, use the following to clean up after all `swarmetheus` data and services:
 
 ## cleanup
 
