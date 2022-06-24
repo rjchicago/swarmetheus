@@ -4,11 +4,12 @@ Are you the type of person who never settles for just the basics?
 
 Well, you're in the right place! `Swarmetheus` **bonus-example** has it all!
 
-* cAdvisor
-* Node Exporter
+* Prometheus
 * Traefik
 * Alertmanager
 * Grafana
+* cAdvisor
+* Node Exporter
 * \+ https & preconfigured alerts!
 
 ## deploy
@@ -27,7 +28,7 @@ sh ./certs/create-certs.sh
 docker stack deploy -c docker-compose.yml swarmetheus --prune
 ```
 
-After a moment, you should have X services running:
+After a moment, you should have 5 services running:
 
 ``` sh
 ➜  ~ docker service ls
