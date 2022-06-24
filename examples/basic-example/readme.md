@@ -1,31 +1,13 @@
-# swarmetheus
+# basic-example
 
-Docker Swarm is pretty simple. Wouldn't it be great if Prometheus monitoring for Docker Swarm were just as simple?
+With `Swarmetheus` **basic-example** you get:
 
-## _**Introducing `Swarmetheus`!**_
-
-## _**Dead simple `Prometheus` for `Docker Swarm`!**_
-
-![swarmetheus-logos](./assets/swarmetheus-logos.png)
-
-### _**But wait - there's more!**_
-
-Swarmetheus [basic-example](./examples/basic-example/readme.md) includes:
-
+* Prometheus
 * cAdvisor
 * Node Exporter
 * \+ preconfigured alerts!
 
-### _**Want even more?**_
-
-Check out the [bonus-example](./examples/bonus-example/readme.md) to get:
-
-* Traefik
-* Alertmanager
-* Grafana
-* \+ https!
-
-## deploy basic-example
+## deploy
 
 ``` sh
 # copy the basic-example docker-compose.yml locally
@@ -56,7 +38,7 @@ b7d48af0f418   gcr.io/cadvisor/cadvisor:v0.43.0   Up 1 minutes (healthy)   0.0.0
 
 ## open
 
-Your `swarmetheus` suite is up and running:
+Your basic `swarmetheus` suite is up and running:
 
 * Prometheus: <http://localhost:9090/>
 * cAdvisor: <http://localhost:9091/>
@@ -69,10 +51,6 @@ Many basic alerts are preconfigured:
 <http://localhost:9090/alerts>
 
 ![swarmetheus-alerts](./assets/swarmetheus-alerts.png)
-
-## bonus-example
-
-To deploy the bonus example, see the [bonus-example readme](./examples/bonus-example/readme.md).
 
 ## cleanup
 
@@ -87,30 +65,4 @@ docker stack rm swarmetheus
 
 # remove volumes
 docker volume rm $(docker volume ls -f "name=^swarmetheus_.+$" --format "{{.Name}}")
-```
-
-## Example Prometheus Queries
-
-### Node CPU
-
-``` sh
-100 - 100 * avg by(instance, env) (irate(node_cpu_seconds_total{mode="idle"}[5m]))
-```
-
-### Node Memory
-
-``` sh
-100 * (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes))
-```
-
-### Container CPU
-
-``` sh
-rate(container_cpu_usage_seconds_total{image=~".+"}[5m])*100
-```
-
-### Container Memory
-
-``` sh
-container_memory_rss{image=~".+"}
 ```
