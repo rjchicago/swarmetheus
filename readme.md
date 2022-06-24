@@ -4,7 +4,7 @@ Docker Swarm is pretty simple. Wouldn't it be great if Prometheus monitoring for
 
 ## _**Introducing `Swarmetheus`!**_
 
-## _**Dead simple `Prometheus` for `Docker Swarm`!**_
+## _**Dead simple `Prometheus` monitoring for `Docker Swarm`!**_
 
 ![swarmetheus-logos](./assets/swarmetheus-logos.png)
 

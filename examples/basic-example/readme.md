@@ -50,7 +50,7 @@ Many basic alerts are preconfigured:
 
 <http://localhost:9090/alerts>
 
-![swarmetheus-alerts](./assets/swarmetheus-alerts.png)
+![swarmetheus-alerts](../../assets/swarmetheus-alerts.png)
 
 ## cleanup
 
