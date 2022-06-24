@@ -40,18 +40,15 @@ ob9flfd6hs3v   swarmetheus_prometheus    replicated   1/1        prom/prometheus
 eiaoee7qnw8v   swarmetheus_swarmetheus   global       1/1        rjchicago/swarmetheus:latest
 ```
 
-After another moment, you will have several more containers running:
+After another moment, you will have several additional side containers running:
 
 ``` sh
-➜  swarmetheus docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
-IMAGE                              STATUS                   PORTS                    NAMES
-prom/node-exporter:v1.3.1          Up 1 minutes             0.0.0.0:9092->9100/tcp   swarmetheus-node-exporter
-gcr.io/cadvisor/cadvisor:v0.43.0   Up 1 minutes (healthy)   0.0.0.0:9091->8080/tcp   swarmetheus-cadvisor
-rjchicago/swarmetheus:latest       Up 1 minutes                                      swarmetheus-health
-prom/prometheus:latest             Up 1 minutes             9090/tcp                 swarmetheus_prometheus[...]
-rjchicago/swarmetheus:latest       Up 1 minutes                                      swarmetheus_swarmetheus[...]
+➜  ~ docker ps -f "name=^swarmetheus-.+$" --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+CONTAINER ID   IMAGE                              STATUS                   PORTS                    NAMES
+4ca200e0165f   prom/node-exporter:v1.3.1          Up 1 minutes             0.0.0.0:9092->9100/tcp   swarmetheus-node-exporter
+b7d48af0f418   gcr.io/cadvisor/cadvisor:v0.43.0   Up 1 minutes (healthy)   0.0.0.0:9091->8080/tcp   swarmetheus-cadvisor
+63ca59739edb   rjchicago/swarmetheus:latest       Up 1 minutes                                      swarmetheus-health
 ```
-
 
 ## open
 

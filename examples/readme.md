@@ -1,9 +1,10 @@
 # swarmetheus demo
 
-``` sh
-# deploy
-docker stack deploy -c docker-compose.yml swarmetheus --prune
+As a reminder, use the following to clean up after all swarmetheus data and services:
 
+## cleanup
+
+``` sh
 # remove
 docker container rm -f $(docker ps -f "name=^swarmetheus-.+$" --format "{{.ID}}")
 docker stack rm swarmetheus
