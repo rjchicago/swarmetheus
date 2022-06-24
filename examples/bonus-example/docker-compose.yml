@@ -40,7 +40,7 @@ services:
       mode: global
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
     user: root
     command:
       - "--config.file=/swarmetheus_data/config/prometheus.yml"
@@ -66,7 +66,7 @@ services:
         - traefik.http.services.prometheus.loadbalancer.server.port=9090
 
   traefik:
-    image: traefik:2.5.7
+    image: traefik:latest
     ports:
       - 80:80
       - 8080:8080
@@ -96,7 +96,7 @@ services:
         - traefik.http.services.traefik.loadbalancer.server.port=8080
 
   alertmanager:
-    image: prom/alertmanager:v0.23.0
+    image: prom/alertmanager:latest
     networks:
       - prometheus-net
       - traefik-net
@@ -113,3 +113,21 @@ services:
         - traefik.http.routers.alertmanager.service=alertmanager
         - traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)
         - traefik.http.services.alertmanager.loadbalancer.server.port=9093
+
+  grafana:
+    image: grafana/grafana:latest
+    networks:
+      - prometheus-net
+      - traefik-net
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana:/etc/grafana/provisioning/datasources
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_NETWORK:-demo-traefik-net}
+        - traefik.http.routers.grafana.service=grafana
+        - traefik.http.routers.grafana.rule=Host(`grafana.localhost`)
+        - traefik.http.services.grafana.loadbalancer.server.port=3000
