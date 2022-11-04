@@ -30,7 +30,9 @@ Check out the [bonus-example](./examples/bonus-example/readme.md) to get:
 ``` sh
 # copy the basic-example docker-compose.yml locally
 wget https://raw.githubusercontent.com/rjchicago/swarmetheus/master/examples/basic-example/docker-compose.yml
+```
 
+``` sh
 # stack deploy
 docker stack deploy -c docker-compose.yml swarmetheus --prune
 ```
@@ -38,7 +40,11 @@ docker stack deploy -c docker-compose.yml swarmetheus --prune
 After a moment, you should have two `swarmetheus` services running:
 
 ``` sh
-➜  swarmetheus docker service ls
+docker service ls
+```
+
+``` sh
+# example output
 ID             NAME                      MODE         REPLICAS   IMAGE                          PORTS
 ob9flfd6hs3v   swarmetheus_prometheus    replicated   1/1        prom/prometheus:latest         *:9090->9090/tcp
 eiaoee7qnw8v   swarmetheus_swarmetheus   global       1/1        rjchicago/swarmetheus:latest
@@ -47,7 +53,11 @@ eiaoee7qnw8v   swarmetheus_swarmetheus   global       1/1        rjchicago/swarm
 After another moment, you will have several additional side containers running:
 
 ``` sh
-➜  ~ docker ps -f "name=^swarmetheus-.+$" --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+docker ps -f "name=^swarmetheus-.+$" --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+```
+
+``` sh
+# example output
 CONTAINER ID   IMAGE                              STATUS                   PORTS                    NAMES
 4ca200e0165f   prom/node-exporter:v1.3.1          Up 1 minutes             0.0.0.0:9092->9100/tcp   swarmetheus-node-exporter
 b7d48af0f418   gcr.io/cadvisor/cadvisor:v0.43.0   Up 1 minutes (healthy)   0.0.0.0:9091->8080/tcp   swarmetheus-cadvisor
@@ -72,7 +82,7 @@ Many basic alerts are preconfigured:
 
 ## bonus-example
 
-To deploy the bonus example, see the [bonus-example readme](./examples/bonus-example/readme.md).
+To deploy the bonus example, see the [bonus-example](./examples/bonus-example/).
 
 ## cleanup
 
@@ -81,10 +91,14 @@ Since `swarmetheus` runs additional containers, it is cleaner to remove those fi
 ``` sh
 # remove containers
 docker container rm -f $(docker ps -f "name=^swarmetheus-.+$" --format "{{.ID}}")
+```
 
+``` sh
 # remove stack
 docker stack rm swarmetheus
+```
 
+``` sh
 # remove volumes
 docker volume rm $(docker volume ls -f "name=^swarmetheus_.+$" --format "{{.Name}}")
 ```

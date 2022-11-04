@@ -17,13 +17,19 @@ Well, you're in the right place! `Swarmetheus` **bonus-example** has it all!
 ``` sh
 # clone this repo
 git clone https://github.com/rjchicago/swarmetheus.git
+```
 
+``` sh
 # cd into bonus-example
 cd swarmetheus/examples/bonus-example
+```
 
+``` sh
 # generate self-signed certs
 sh ./certs/create-certs.sh
+```
 
+``` sh
 # stack deploy
 docker stack deploy -c docker-compose.yml swarmetheus --prune
 ```
@@ -31,7 +37,11 @@ docker stack deploy -c docker-compose.yml swarmetheus --prune
 After a moment, you should have 5 services running:
 
 ``` sh
-➜  ~ docker service ls
+docker service ls
+```
+
+``` sh
+# example output
 ID             NAME                       MODE         REPLICAS   IMAGE                          PORTS
 pokkwiwaanrz   swarmetheus_alertmanager   replicated   1/1        prom/alertmanager:latest
 pz6ndibec21z   swarmetheus_grafana        replicated   1/1        grafana/grafana:latest
@@ -43,7 +53,10 @@ td3h2myc0zxh   swarmetheus_traefik        global       1/1        traefik:latest
 After another moment, you will have several additional side containers running:
 
 ``` sh
-➜  ~ docker ps -f "name=^swarmetheus-.+$" --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+docker ps -f "name=^swarmetheus-.+$" --format "table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}"
+```
+
+``` sh
 CONTAINER ID   IMAGE                              STATUS                   PORTS                    NAMES
 4ca200e0165f   prom/node-exporter:v1.3.1          Up 1 minutes             0.0.0.0:9092->9100/tcp   swarmetheus-node-exporter
 b7d48af0f418   gcr.io/cadvisor/cadvisor:v0.43.0   Up 1 minutes (healthy)   0.0.0.0:9091->8080/tcp   swarmetheus-cadvisor
@@ -93,7 +106,9 @@ datasources:
 # remove
 docker container rm -f $(docker ps -f "name=^swarmetheus-.+$" --format "{{.ID}}")
 docker stack rm swarmetheus
+```
 
+``` sh
 # rm volumes
 docker volume rm $(docker volume ls -f "name=^swarmetheus_.+$" --format "{{.Name}}")
 ```
